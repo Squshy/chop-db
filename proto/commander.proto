@@ -1,0 +1,16 @@
+syntax = "proto3";
+package commander;
+
+service Commander {
+    rpc IssueCommand (CommanderRequest) returns (CommanderResponse) {}
+}
+
+message CommanderRequest {
+    string command = 1;
+    string value = 2;
+}
+
+message CommanderResponse {
+    bool successful = 1;
+    string message = 2;
+}
