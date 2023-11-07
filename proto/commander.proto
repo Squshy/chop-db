@@ -2,11 +2,12 @@ syntax = "proto3";
 package commander;
 
 service Commander {
-    rpc IssueCommand (CommanderRequest) returns (CommanderResponse) {}
+    rpc Get (CommanderRequest) returns (CommanderResponse) {}
+    rpc Set (CommanderRequest) returns (CommanderResponse) {}
+    rpc Delete (CommanderRequest) returns (CommanderResponse) {}
 }
 
 message CommanderRequest {
-    string command = 1;
     string value = 2;
 }
 

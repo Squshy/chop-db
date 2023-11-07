@@ -1,10 +1,59 @@
 use anyhow::anyhow;
+use commander::commander_server::{Commander, CommanderServer};
+use commander::{CommanderRequest, CommanderResponse};
 use hashy::rand::generate_random_string;
 use std::collections::HashMap;
 use std::fs::{DirBuilder, File, OpenOptions};
 use std::io::{Read, Seek, SeekFrom, Write};
+use tonic::{transport::Server, Request, Response, Status};
+
+pub mod commander {
+    tonic::include_proto!("commander");
+}
 
 const DELETED_FLAG: usize = 0xFF;
+
+#[derive(Debug, Default)]
+struct MyCommander {}
+
+#[tonic::async_trait]
+impl Commander for MyCommander {
+    async fn get(
+        &self,
+        request: Request<CommanderRequest>,
+    ) -> Result<Response<CommanderResponse>, Status> {
+        let reply = commander::CommanderResponse {
+            successful: true,
+            message: format!("hehe"),
+        };
+
+        Ok(Response::new(reply))
+    }
+
+    async fn set(
+        &self,
+        request: Request<CommanderRequest>,
+    ) -> Result<Response<CommanderResponse>, Status> {
+        let reply = commander::CommanderResponse {
+            successful: true,
+            message: format!("hehe"),
+        };
+
+        Ok(Response::new(reply))
+    }
+
+    async fn delete(
+        &self,
+        request: Request<CommanderRequest>,
+    ) -> Result<Response<CommanderResponse>, Status> {
+        let reply = commander::CommanderResponse {
+            successful: true,
+            message: format!("hehe"),
+        };
+
+        Ok(Response::new(reply))
+    }
+}
 
 struct Segment {
     /// A hash map which references a key and byte-offset location in the segment
@@ -171,18 +220,15 @@ fn meme(hash_index: &HashIndex, key: &str) -> Result<(), anyhow::Error> {
     Ok(())
 }
 
-fn main() -> Result<(), anyhow::Error> {
-    let mut hash_index = HashIndex::new()?;
-    hash_index.set(&"haha".to_string(), "HEHEHEHEHEHEHE".to_string())?;
-    hash_index.set(
-        &"hoho".to_string(),
-        "abcd1e123laksdlasdaslkdjasldjasldajkld".to_string(),
-    )?;
+#[tokio::main]
+async fn main() -> Result<(), anyhow::Error> {
+    let addr = "[::1]:50051".parse()?;
+    let commander = MyCommander::default();
 
-    meme(&hash_index, "haha")?;
-    meme(&hash_index, "hoho")?;
-    hash_index.delete(&"haha".to_string())?;
-    meme(&hash_index, "haha")?;
+    Server::builder()
+        .add_service(CommanderServer::new(commander))
+        .serve(addr)
+        .await?;
 
     Ok(())
 }
