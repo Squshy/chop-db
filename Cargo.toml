@@ -14,3 +14,8 @@ name = "hashy"
 
 [dependencies]
 anyhow = "1.0.75"
+tokio = "1.33.0"
+tonic = "0.10.2"
+
+[build-dependencies]
+tonic-build = "0.10"
