@@ -171,6 +171,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
+name = "commander-server"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "prost",
+ "tokio",
+ "tonic",
+ "tonic-build",
+]
+
+[[package]]
 name = "either"
 version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -296,16 +307,6 @@ name = "hashbrown"
 version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f93e7192158dbcda357bdec5fb5788eebf8bbac027f3f33e719d29135ae84156"
-
-[[package]]
-name = "hashy"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "tokio",
- "tonic",
- "tonic-build",
-]
 
 [[package]]
 name = "heck"

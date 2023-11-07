@@ -1,7 +1,7 @@
 use anyhow::anyhow;
 use commander::commander_server::{Commander, CommanderServer};
 use commander::{CommanderRequest, CommanderResponse};
-use hashy::rand::generate_random_string;
+use commander_server::rand::generate_random_string;
 use std::collections::HashMap;
 use std::fs::{DirBuilder, File, OpenOptions};
 use std::io::{Read, Seek, SeekFrom, Write};
@@ -13,8 +13,17 @@ pub mod commander {
 
 const DELETED_FLAG: usize = 0xFF;
 
-#[derive(Debug, Default)]
-struct MyCommander {}
+struct MyCommander {
+    hash_index: HashIndex,
+}
+
+impl Default for MyCommander {
+    fn default() -> Self {
+        MyCommander {
+            hash_index: HashIndex::new().unwrap(),
+        }
+    }
+}
 
 #[tonic::async_trait]
 impl Commander for MyCommander {
@@ -22,9 +31,11 @@ impl Commander for MyCommander {
         &self,
         request: Request<CommanderRequest>,
     ) -> Result<Response<CommanderResponse>, Status> {
+        let val = self.hash_index.get(&request.into_inner().value).unwrap();
+
         let reply = commander::CommanderResponse {
             successful: true,
-            message: format!("hehe"),
+            message: val.unwrap_or("No value".to_string()),
         };
 
         Ok(Response::new(reply))
@@ -210,19 +221,9 @@ impl HashIndex {
     }
 }
 
-fn meme(hash_index: &HashIndex, key: &str) -> Result<(), anyhow::Error> {
-    if let Some(val) = hash_index.get(&key.to_string())? {
-        println!("The value for the key {} is: {}", key, val);
-    } else {
-        println!("No value exists for the key {}", key);
-    }
-
-    Ok(())
-}
-
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
-    let addr = "[::1]:50051".parse()?;
+    let addr = "127.0.0.1:50051".parse()?;
     let commander = MyCommander::default();
 
     Server::builder()
