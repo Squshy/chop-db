@@ -47,6 +47,9 @@ impl Forester for MyForester {
         &self,
         request: Request<ForesterSetRequest>,
     ) -> Result<Response<ForesterSetResponse>, Status> {
+        let val = request.into_inner();
+        let _ = self.hash_index.set(&val.key, val.value);
+
         let reply = forester::ForesterSetResponse {
             message: Some(ForesterMessage {
                 status: ResponseStatus::Success.into(),
@@ -61,12 +64,14 @@ impl Forester for MyForester {
         &self,
         request: Request<ForesterDeleteRequest>,
     ) -> Result<Response<ForesterDeleteResponse>, Status> {
+        let deleted = self.hash_index.delete(&request.into_inner().key).unwrap();
+
         let reply = forester::ForesterDeleteResponse {
             message: Some(ForesterMessage {
                 status: ResponseStatus::Success.into(),
                 message: "Successful delete.".to_string(),
             }),
-            deleted: true,
+            deleted,
         };
 
         Ok(Response::new(reply))
