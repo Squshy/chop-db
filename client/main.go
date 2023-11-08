@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	defaultName = "lumberjack"
+	defaultName = "forester"
 )
 
 var (
@@ -29,11 +29,11 @@ func main() {
 	}
 	defer conn.Close()
 
-	c := pb.NewLumberjackClient(conn)
+	c := pb.NewForesterClient(conn)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	r, err := c.Get(ctx, &pb.LumberjackRequest{Value: "hehe"})
+	r, err := c.Get(ctx, &pb.ForesterGetRequest{Key: "hehe"})
 
 	if err != nil {
 		log.Fatalf("could not get: %v", err)

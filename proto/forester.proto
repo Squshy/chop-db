@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+option go_package = "/pb";
+
+package forester;
+
+service Forester {
+    rpc Get (ForesterGetRequest) returns (ForesterGetResponse) {}
+    rpc Set (ForesterSetRequest) returns (ForesterSetResponse) {}
+    rpc Delete (ForesterDeleteRequest) returns (ForesterDeleteResponse) {}
+}
+
+message ForesterMessage {
+    enum ResponseStatus {
+        SUCCESS = 0;
+        ERROR = 1;
+    }
+
+    ResponseStatus status = 1;
+    string message = 2;
+}
+
+// GET
+message ForesterGetRequest {
+    string key = 1;
+}
+
+message ForesterGetResponse {
+    ForesterMessage message = 1;
+    optional string value = 2;
+}
+
+// SET
+message ForesterSetRequest {
+    string key = 1;
+    string value = 2;
+}
+
+message ForesterSetResponse {
+    ForesterMessage message = 1;
+}
+
+// DELETE
+message ForesterDeleteRequest {
+    string key = 1;
+}
+
+message ForesterDeleteResponse {
+    ForesterMessage message = 1;
+    bool deleted = 2;
+}
