@@ -20,6 +20,36 @@ var (
 	name = flag.String("name", defaultName, "Name I guess")
 )
 
+func get(client pb.ForesterClient, ctx context.Context, key string) {
+	r, err := client.Get(ctx, &pb.ForesterGetRequest{Key: key})
+
+	if err != nil {
+		log.Fatalf("could not get: %v", err)
+	}
+
+	log.Printf("Got: %s", r.Value)
+}
+
+func set(client pb.ForesterClient, ctx context.Context, key string, value string) {
+	_, err := client.Set(ctx, &pb.ForesterSetRequest{Key: key, Value: value})
+
+	if err != nil {
+		log.Fatalf("could not set: %v", err)
+	}
+
+	log.Printf("Set: %s:%s", key, value)
+}
+
+func del(client pb.ForesterClient, ctx context.Context, key string) {
+	deleted, err := client.Delete(ctx, &pb.ForesterDeleteRequest{Key: key})
+
+	if err != nil {
+		log.Fatalf("could not delete: %v", err)
+	}
+
+	log.Printf("Deleted (%s): %s", deleted, key)
+}
+
 func main() {
 	flag.Parse()
 	conn, err := grpc.Dial(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -33,11 +63,9 @@ func main() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	r, err := c.Get(ctx, &pb.ForesterGetRequest{Key: "hehe"})
-
-	if err != nil {
-		log.Fatalf("could not get: %v", err)
-	}
-
-	log.Printf("Get: %s", r.Message)
+	get(c, ctx, "hehe")
+	set(c, ctx, "hehe", "it is set!")
+	get(c, ctx, "hehe")
+	del(c, ctx, "hehe")
+	get(c, ctx, "hehe")
 }

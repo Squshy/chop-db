@@ -20,7 +20,7 @@ pub struct Segment {
 
 fn create_file(file_name: String) -> Result<String, anyhow::Error> {
     let path = "./logs/";
-    let file_path = format!("{}/{}", path, file_name);
+    let file_path = format!("{}/{}.chop", path, file_name);
     DirBuilder::new().recursive(true).create(&path)?;
 
     Ok(file_path.to_string())
@@ -87,8 +87,6 @@ impl Segment {
     }
 
     pub fn set(&self, key: &String, data: &LogEntry) -> Result<(), anyhow::Error> {
-        let mut file = self.file.write().unwrap();
-
         let data_bytes: &[u8] = match data {
             LogEntry::Alive(d) => d.as_bytes(),
             LogEntry::Deleted => &[DELETED_FLAG as u8],
@@ -100,6 +98,7 @@ impl Segment {
             return Err(anyhow!("Data must be at most 64/32 bytes large"));
         };
 
+        let mut file = self.file.write().unwrap();
         file.write(&data_byte_size)?;
         let num_bytes = file.write(data_bytes)?;
 
