@@ -6,13 +6,13 @@ import (
 	"log"
 	"time"
 
-	pb "commander/pb"
+	pb "chop-client/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
 const (
-	defaultName = "commander"
+	defaultName = "lumberjack"
 )
 
 var (
@@ -29,11 +29,11 @@ func main() {
 	}
 	defer conn.Close()
 
-	c := pb.NewCommanderClient(conn)
+	c := pb.NewLumberjackClient(conn)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	r, err := c.Get(ctx, &pb.CommanderRequest{Value: "hehe"})
+	r, err := c.Get(ctx, &pb.LumberjackRequest{Value: "hehe"})
 
 	if err != nil {
 		log.Fatalf("could not get: %v", err)

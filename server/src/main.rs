@@ -1,33 +1,33 @@
 use chop_db::HashIndex;
-use commander::commander_server::Commander;
-use commander::{commander_server::CommanderServer, CommanderRequest, CommanderResponse};
+use lumberjack::lumberjack_server::Lumberjack;
+use lumberjack::{lumberjack_server::LumberjackServer, LumberjackRequest, LumberjackResponse};
 use tonic::{transport::Server, Request, Response, Status};
 
-pub mod commander {
-    tonic::include_proto!("commander");
+pub mod lumberjack {
+    tonic::include_proto!("lumberjack");
 }
 
-struct MyCommander {
+struct MyLumberjack {
     hash_index: HashIndex,
 }
 
-impl Default for MyCommander {
+impl Default for MyLumberjack {
     fn default() -> Self {
-        MyCommander {
+        MyLumberjack {
             hash_index: HashIndex::new().unwrap(),
         }
     }
 }
 
 #[tonic::async_trait]
-impl Commander for MyCommander {
+impl Lumberjack for MyLumberjack {
     async fn get(
         &self,
-        request: Request<CommanderRequest>,
-    ) -> Result<Response<CommanderResponse>, Status> {
+        request: Request<LumberjackRequest>,
+    ) -> Result<Response<LumberjackResponse>, Status> {
         let val = self.hash_index.get(&request.into_inner().value).unwrap();
 
-        let reply = commander::CommanderResponse {
+        let reply = lumberjack::LumberjackResponse {
             successful: true,
             message: val.unwrap_or("No value".to_string()),
         };
@@ -37,9 +37,9 @@ impl Commander for MyCommander {
 
     async fn set(
         &self,
-        request: Request<CommanderRequest>,
-    ) -> Result<Response<CommanderResponse>, Status> {
-        let reply = commander::CommanderResponse {
+        request: Request<LumberjackRequest>,
+    ) -> Result<Response<LumberjackResponse>, Status> {
+        let reply = lumberjack::LumberjackResponse {
             successful: true,
             message: format!("hehe"),
         };
@@ -49,9 +49,9 @@ impl Commander for MyCommander {
 
     async fn delete(
         &self,
-        request: Request<CommanderRequest>,
-    ) -> Result<Response<CommanderResponse>, Status> {
-        let reply = commander::CommanderResponse {
+        request: Request<LumberjackRequest>,
+    ) -> Result<Response<LumberjackResponse>, Status> {
+        let reply = lumberjack::LumberjackResponse {
             successful: true,
             message: format!("hehe"),
         };
@@ -63,10 +63,10 @@ impl Commander for MyCommander {
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
     let addr = "127.0.0.1:50051".parse()?;
-    let commander = MyCommander::default();
+    let lumberjack = MyLumberjack::default();
 
     Server::builder()
-        .add_service(CommanderServer::new(commander))
+        .add_service(LumberjackServer::new(lumberjack))
         .serve(addr)
         .await?;
 

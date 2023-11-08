@@ -1,4 +1,4 @@
-module commander
+module chop-client
 
 go 1.21
 
