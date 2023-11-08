@@ -26,17 +26,17 @@ impl HashIndex {
         Ok(None)
     }
 
-    pub fn set(&mut self, key: &String, data: String) -> Result<(), anyhow::Error> {
-        if let Some(segment) = self.segments.last_mut() {
+    pub fn set(&self, key: &String, data: String) -> Result<(), anyhow::Error> {
+        if let Some(segment) = self.segments.last() {
             return segment.set(key, &LogEntry::Alive(data));
         }
 
         Err(anyhow!("No segment files"))
     }
 
-    pub fn delete(&mut self, key: &String) -> Result<bool, anyhow::Error> {
+    pub fn delete(&self, key: &String) -> Result<bool, anyhow::Error> {
         // Look at the most recent segment first
-        for segment in self.segments.iter_mut().rev() {
+        for segment in self.segments.iter().rev() {
             if segment.has_key(key) {
                 return segment.delete(key);
             }

@@ -3,6 +3,8 @@ use anyhow::anyhow;
 use std::collections::HashMap;
 use std::fs::{DirBuilder, File, OpenOptions};
 use std::io::{Read, Seek, SeekFrom, Write};
+use std::ops::Deref;
+use std::sync::RwLock;
 
 const DELETED_FLAG: usize = 0xFF;
 
@@ -11,9 +13,9 @@ pub struct Segment {
     ///
     /// The offset is the starting location of the key's data. The first x bytes
     /// is the size of the data which is stored followed by the raw data.
-    hash_map: HashMap<String, usize>,
-    file_path: String,
-    byte_offset: usize,
+    hash_map: RwLock<HashMap<String, usize>>,
+    byte_offset: RwLock<usize>,
+    file: RwLock<File>,
 }
 
 fn create_file(file_name: String) -> Result<String, anyhow::Error> {
@@ -33,26 +35,32 @@ pub enum LogEntry {
 impl Segment {
     pub fn new() -> Result<Self, anyhow::Error> {
         let file_path = create_file(generate_random_string(15))?;
-        let segment = Segment {
-            hash_map: HashMap::new(),
-            file_path,
-            byte_offset: 0,
-        };
+        let file = OpenOptions::new()
+            .create(true)
+            .read(true)
+            .write(true)
+            .open(file_path)?;
 
-        File::create(&segment.file_path)?;
+        let segment = Segment {
+            hash_map: RwLock::new(HashMap::new()),
+            byte_offset: RwLock::new(0),
+            file: RwLock::new(file),
+        };
 
         Ok(segment)
     }
 
     pub fn get(&self, key: &String) -> Result<Option<String>, anyhow::Error> {
-        let offset = self.hash_map.get(key);
+        let offset = self.hash_map.read().unwrap();
+        let offset = offset.get(key);
 
         if offset.is_none() {
             return Ok(None);
         }
 
         let offset = offset.unwrap();
-        let mut file = File::open(&self.file_path)?;
+        let file = self.file.read().unwrap();
+        let mut file = file.deref();
 
         // Read the file from our offset
         file.seek(SeekFrom::Start(*offset as u64))?;
@@ -78,8 +86,8 @@ impl Segment {
         Ok(Some(String::from_utf8(buffer)?))
     }
 
-    pub fn set(&mut self, key: &String, data: &LogEntry) -> Result<(), anyhow::Error> {
-        let mut file = OpenOptions::new().append(true).open(&self.file_path)?;
+    pub fn set(&self, key: &String, data: &LogEntry) -> Result<(), anyhow::Error> {
+        let mut file = self.file.write().unwrap();
 
         let data_bytes: &[u8] = match data {
             LogEntry::Alive(d) => d.as_bytes(),
@@ -96,22 +104,24 @@ impl Segment {
         let num_bytes = file.write(data_bytes)?;
 
         self.hash_map
+            .write()
+            .unwrap()
             .entry(key.clone())
-            .and_modify(|val| *val = self.byte_offset)
-            .or_insert_with(|| self.byte_offset);
+            .and_modify(|val| *val = *self.byte_offset.read().unwrap())
+            .or_insert_with(|| *self.byte_offset.read().unwrap());
 
-        self.byte_offset += num_bytes + 8;
+        *self.byte_offset.write().unwrap() += num_bytes + 8;
 
         Ok(())
     }
 
-    pub fn delete(&mut self, key: &String) -> Result<bool, anyhow::Error> {
+    pub fn delete(&self, key: &String) -> Result<bool, anyhow::Error> {
         self.set(&key, &LogEntry::Deleted)?;
 
         Ok(true)
     }
 
     pub fn has_key(&self, key: &String) -> bool {
-        self.hash_map.contains_key(key)
+        self.hash_map.read().unwrap().contains_key(key)
     }
 }
