@@ -51,21 +51,18 @@ impl Segment {
     }
 
     pub fn get(&self, key: &String) -> Result<Option<String>, anyhow::Error> {
-        let offset = self.hash_map.read().unwrap();
-        let offset = offset.get(key);
+        let offset = match self.hash_map.read().unwrap().get(key) {
+            Some(&offset) => offset,
+            None => return Ok(None),
+        };
 
-        if offset.is_none() {
-            return Ok(None);
-        }
-
-        let offset = offset.unwrap();
         let file = self.file.read().unwrap();
         let mut file = file.deref();
 
         // Read the file from our offset
-        file.seek(SeekFrom::Start(*offset as u64))?;
+        file.seek(SeekFrom::Start(offset as u64))?;
         // Read the size of the data which is stored
-        let mut offset_buffer = [0u8; 8 as usize];
+        let mut offset_buffer = [0u8; 8];
         file.read_exact(&mut offset_buffer)?;
 
         // Convert the bytes to an int in a funky way
@@ -76,7 +73,6 @@ impl Segment {
         // which tells us how big the data is)
         file.seek(SeekFrom::Start((offset + 8) as u64))?;
         let mut buffer = vec![0u8; data_size];
-
         file.read_exact(&mut buffer)?;
 
         if buffer.last() == Some(&(DELETED_FLAG as u8)) || buffer.last() == None {
@@ -100,7 +96,7 @@ impl Segment {
 
         let mut file = self.file.write().unwrap();
         file.write(&data_byte_size)?;
-        let num_bytes = file.write(data_bytes)?;
+        file.write(data_bytes)?;
 
         self.hash_map
             .write()
@@ -109,7 +105,7 @@ impl Segment {
             .and_modify(|val| *val = *self.byte_offset.read().unwrap())
             .or_insert_with(|| *self.byte_offset.read().unwrap());
 
-        *self.byte_offset.write().unwrap() += num_bytes + 8;
+        *self.byte_offset.write().unwrap() += data_bytes.len() + 8;
 
         Ok(())
     }

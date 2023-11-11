@@ -131,8 +131,6 @@ func validateInput(input string) (InputData, error) {
 		return InputData{Code: -1, Values: []string{""}}, err
 	}
 
-	fmt.Println("SPLITS:", splits, "LENGTH:", len(splits))
-
 	// Get the first word in the line
 	switch strings.ToLower(splits[0]) {
 	case "bye", "exit", "quit", "q":
