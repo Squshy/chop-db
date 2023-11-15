@@ -19,6 +19,7 @@ The database library can be imported into Rust projects and used freely. This ma
 A lot. This project is a part of the engineering book club I started at PostGrid and is ever expanding as we go through [Designing Data Intensive Applications](#https://dataintensive.net/).
 
 Some of the future tasks include:
-    - [ ] Allow for persistent start-ups by reading existing log files
-    - [ ] Compact log files in the background 
-    - [ ] Add support for leader/follower database replication 
+
+- [ ] Allow for persistent start-ups by reading existing log files
+- [ ] Compact log files in the background 
+- [ ] Add support for leader/follower database replication 
