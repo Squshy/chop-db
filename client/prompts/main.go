@@ -139,7 +139,7 @@ func validateInput(input string) (InputData, error) {
 		return InputData{Code: GET, Values: splits[1:]}, nil
 	case "set", "s":
 		return InputData{Code: SET, Values: splits[1:]}, nil
-	case "delete", "d":
+	case "delete", "d", "del":
 		return InputData{Code: DELETE, Values: splits[1:]}, nil
 	}
 
