@@ -14,6 +14,10 @@ The `db` folder holds the logic for the database. It is a simple log-structured 
 
 The database library can be imported into Rust projects and used freely. This may not always be desirable so a simple CLI/server is provided. The client and the server communicate via gRPC. The client is currently written in Go just for fun to showcase how gRPC can be used across different languages. The CLI accepts the `get`, `set`, and `delete` commands the database supports.
 
+
+
+![db-cli-gif](https://github.com/Squshy/chop-db/assets/36893334/f355a35d-37a0-42d9-ad97-2d868dbdc720)
+
 # What's left?
 
 A lot. This project is a part of the engineering book club I started at PostGrid and is ever expanding as we go through [Designing Data Intensive Applications](#https://dataintensive.net/).
