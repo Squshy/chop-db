@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "db",
-    "server"
+    "server",
+    "exercises/transactions"
 ]
 resolver = "2"
