@@ -1,4 +1,4 @@
-mod db;
+pub mod db;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 enum Action {
@@ -154,37 +154,63 @@ mod test {
 
         // Get tx 2 x, expect 11
         let command = commands.next().unwrap();
-        println!("{:?}", command);
         assert_get_tx(&db, command, Some("11".into())).unwrap();
 
         // Set tx 2 x 12, expect 11
         let command = commands.next().unwrap();
-        println!("{:?}", command);
         assert_set_tx(&mut db, command, Some("11".into())).unwrap();
 
         // Get tx 3 x, expect 11
         let command = commands.next().unwrap();
-        println!("{:?}", command);
         assert_get_tx(&db, command, Some("11".into())).unwrap();
 
         // Set tx 3 x 13, expect 11
         let command = commands.next().unwrap();
-        println!("{:?}", command);
         assert_set_tx(&mut db, command, Some("11".into())).unwrap();
 
         // Abort tx 2
         let command = commands.next().unwrap();
-        println!("{:?}", command);
         assert_eq!(db.abort_tx(command.tx_id.unwrap()).unwrap(), true);
 
         // Commit tx 3
         let command = commands.next().unwrap();
-        println!("{:?}", command);
         db.commit_tx(command.tx_id.clone().unwrap()).unwrap();
 
         // Get x, expect 13
         let command = commands.next().unwrap();
-        println!("{:?}", command);
         assert_get(&db, command, Some("13".into()));
+
+        // Begin tx 4
+        let _ = commands.next().unwrap();
+        tx_counter += 1;
+        db.begin_tx_with_id(tx_counter).unwrap();
+
+        // Begin tx 5
+        let _ = commands.next().unwrap();
+        tx_counter += 1;
+        db.begin_tx_with_id(tx_counter).unwrap();
+
+        // Set tx 4 x 14, expect 13
+        let command = commands.next().unwrap();
+        assert_set_tx(&mut db, command, Some("13".into())).unwrap();
+
+        // Commit tx 4
+        let command = commands.next().unwrap();
+        db.commit_tx(command.tx_id.clone().unwrap()).unwrap();
+
+        // Get tx 5 x, expect 13
+        let command = commands.next().unwrap();
+        assert_get_tx(&db, command, Some("13".into())).unwrap();
+
+        // Set tx 5 x 15, expect 13
+        let command = commands.next().unwrap();
+        assert_set_tx(&mut db, command, Some("13".into())).unwrap();
+
+        // Commit tx 5, expect conflict
+        let command = commands.next().unwrap();
+        assert_eq!(
+            db.commit_tx(command.tx_id.clone().unwrap()),
+            Err(TransactionError::Conflict)
+        );
     }
 }

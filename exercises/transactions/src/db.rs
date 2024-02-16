@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-#[derive(thiserror::Error, Debug)]
+#[derive(thiserror::Error, Debug, PartialEq, PartialOrd, Ord, Eq)]
 pub enum TransactionError {
     #[error("A write conflict occured")]
     Conflict,
@@ -44,7 +44,9 @@ impl Database {
     pub fn set(&mut self, key: String, value: String) {
         if let Some(prev_value) = self.store.insert(key.clone(), value) {
             for (_, t) in self.transactions.iter_mut() {
-                t.updated_pairs.insert(key.clone(), prev_value.clone());
+                if !t.updated_pairs.contains_key(&key) {
+                    t.updated_pairs.insert(key.clone(), prev_value.clone());
+                }
             }
         }
     }
@@ -68,11 +70,14 @@ impl Database {
         value: String,
         tx_id: usize,
     ) -> Result<Option<String>, TransactionError> {
-        Ok(self
-            .transactions
+        let prev_value = self.get_tx(&key, tx_id)?;
+
+        self.transactions
             .get_mut(&tx_id)
             .ok_or(TransactionError::NotFound(tx_id))?
-            .set(key, value))
+            .set(key, value);
+
+        Ok(prev_value)
     }
 
     pub fn get_tx(&self, key: &String, tx_id: usize) -> Result<Option<String>, TransactionError> {
